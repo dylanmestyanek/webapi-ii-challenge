@@ -25,12 +25,24 @@ router.post("/:id/comments", (req, res) => {
 
     !comment.text && res.status(400).json({ errorMessage: "Please provide text for the comment." })
 
-    db.insertComment(comment)
-    .then(data => res.status(201).json(comment))
-    .catch(err => {
-        console.log("POST to add comment to post failed:", err)
-        res.status(500).json({ error: "There was an error while saving the comment to the database." })
+    // Check if ID exists
+    db.findById(id)
+    .then(post => {
+        // IF ID exists, then add the comment
+        if (post.length) {
+            db.insertComment(comment)
+            .then(data => res.status(201).json(comment))
+            .catch(err => {
+                console.log("POST to add comment to post failed:", err)
+                res.status(500).json({ error: "There was an error while saving the comment to the database." })
+            })
+        // Otherwise, return error that the post doesn't exist
+        } else {
+            res.status(404).json({ message: "The post with the specified ID does not exist." })
+        }
+        
     })
+
 })
 
 // GET all posts
