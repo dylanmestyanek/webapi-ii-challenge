@@ -4,12 +4,33 @@ const db = require("../data/db");
 
 // POST to create a new post
 router.post("/", (req, res) => {
+    const updatedInfo = req.body;
 
+    if (!updatedInfo.title || !updatedInfo.contents){
+        res.status(400).json({ errorMessage: "Please provide title and contents for the post." })
+    }
+    
+    db.insert(updatedInfo)
+    .then(data => res.status(201).json(updatedInfo))
+    .catch(err => {
+        console.log("POST to add new post failed:", err)
+        res.status(500).json({ message: "There was an error while saving the post to the database." })
+    })
 })
 
 // POST to add a new comment on a post
-router.post("/", (req, res) => {
-    
+router.post("/:id/comments", (req, res) => {
+    const id = req.params.id;
+    const comment = {...req.body, post_id: id};
+
+    !comment.text && res.status(400).json({ errorMessage: "Please provide text for the comment." })
+
+    db.insertComment(comment)
+    .then(data => res.status(201).json(comment))
+    .catch(err => {
+        console.log("POST to add comment to post failed:", err)
+        res.status(500).json({ error: "There was an error while saving the comment to the database." })
+    })
 })
 
 // GET all posts
